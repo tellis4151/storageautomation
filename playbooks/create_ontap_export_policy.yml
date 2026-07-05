@@ -1,0 +1,37 @@
+---
+- name: Manage NetApp ONTAP Export Policies and Rules
+  hosts: localhost
+  gather_facts: false
+  vars:
+    svm_name: "svm_data"
+    policy_name: "nfs_linux_clients_policy"
+
+  tasks:
+    - name: Create Export Policy
+      netapp.ontap.na_ontap_export_policy:
+        state: present
+        name: "{{ policy_name }}"
+        vserver: "{{ svm_name }}"
+        hostname: "{{ ontap_hostname }}"
+        username: "{{ ontap_username }}"
+        password: "{{ ontap_password }}"
+        https: true
+        validate_certs: false
+        
+    - name: Add Rule to Export Policy
+      netapp.ontap.na_ontap_export_policy_rule:
+        state: present
+        policy_name: "{{ policy_name }}"
+        vserver: "{{ svm_name }}"
+        client_match: "192.168.10.0/24"   # Subnet or IP allowed to access
+        ro_rule: "sys"                    # Read-only security flavor (any, sys, krb5, etc.)
+        rw_rule: "sys"                    # Read-write security flavor
+        super_user_security: "sys"        # Root access security flavor
+        protocol: "nfs3,nfs4"             # Allowed protocols
+        rule_index: 1                     # Position of the rule in the policy
+        allow_suid: true
+        hostname: "{{ ontap_hostname }}"
+        username: "{{ ontap_username }}"
+        password: "{{ ontap_password }}"
+        https: true
+        validate_certs: false

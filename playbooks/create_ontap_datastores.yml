@@ -1,0 +1,43 @@
+---
+- name: End-to-End NetApp Volume and VMware NFS Datastore Provisioning
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    svm_name: "svm_vmware"
+    svm_nfs_lif: "192.168.10.60"       
+    volume_name: "ds_ds01_prod"
+    aggregate_name: "aggr1_node01"
+    volume_size: 500
+    volume_unit: "gb"
+    junction_path: "/ds_ds01_prod"
+    export_policy: "esxi_hosts_policy" 
+    esxi_host: "esxi01.local"          
+    datastore_name: "NetApp_NFS_DS01"
+
+  tasks:
+    - name: Ensure NetApp FlexVol exists
+      netapp.ontap.na_ontap_volume:
+        state: present
+        name: "{{ volume_name }}"
+        vserver: "{{ svm_name }}"
+        aggregate_name: "{{ aggregate_name }}"
+        size: "{{ volume_size }}"
+        size_unit: "{{ volume_unit }}"
+        space_guarantee: none          
+        junction_path: "{{ junction_path }}"
+        export_policy: "{{ export_policy }}"
+        hostname: "{{ ontap_hostname }}"
+        username: "{{ ontap_username }}"
+        password: "{{ ontap_password }}"
+        https: true
+        validate_certs: false
+
+    - name: Mount NetApp NFS Volume as Datastore on ESXi
+      community.vmware.vmware_host_datastore:
+        state: present
+        datastore_name: "{{ datastore_name }}"
+        datastore_type: "nfs"
+        nfs_server: "{{ svm_nfs_lif }}" 
+        nfs_path: "{{ junction_path }}" 
+        nfs_ro: false

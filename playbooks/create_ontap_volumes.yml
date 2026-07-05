@@ -1,0 +1,44 @@
+
+---
+- name: Create NetApp ONTAP Volumes
+  hosts: localhost
+  gather_facts: false
+  vars:
+    svm_name: "svm_data"
+    volume_name: "ansible_flexvol_01"
+    aggregate_name: "aggr1_node01"
+    volume_size: 100
+    volume_unit: "gb"                   # Options: gb, tb, mb, b
+    junction_path: "/ansible_flexvol_01"
+
+  tasks:
+    - name: Create FlexVol Volume
+      netapp.ontap.na_ontap_volume:
+        state: present
+        name: "{{ volume_name }}"
+        vserver: "{{ svm_name }}"
+        aggregate_name: "{{ aggregate_name }}"
+        size: "{{ volume_size }}"
+        size_unit: "{{ volume_unit }}"
+        space_guarantee: none           # 'none' enables thin provisioning; use 'volume' for thick
+        junction_path: "{{ junction_path }}"
+        export_policy: "default"
+        snapshot_policy: "default"
+        user_id: 1001
+        group_id: 2002
+        percent_snapshot_space: 60
+        space_slo: none
+        nvfail_enabled: false
+        tiering_policy: auto
+        wait_for_completion: true
+        qos_policy: max_performance_gold
+        hostname: "{{ ontap_hostname }}"
+        username: "{{ ontap_username }}"
+        password: "{{ ontap_password }}"
+        https: true
+        validate_certs: false
+      register: vol_result
+
+    - name: Debug Volume Creation Output
+      ansible.builtin.debug:
+        var: vol_result
