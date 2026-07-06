@@ -8,7 +8,7 @@
     svm_nfs_lif: "192.168.10.60"       
     volume_name: "ds_ds01_prod"
     aggregate_name: "aggr1_node01"
-    volume_size: 500
+    volume_size: 600
     volume_unit: "gb"
     junction_path: "/ds_ds01_prod"
     export_policy: "esxi_hosts_policy" 
